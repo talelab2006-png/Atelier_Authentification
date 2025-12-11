@@ -1,12 +1,5 @@
 name: Industrialisation continue sur le serveur Alwaysdata
-
-on:
-  push:
-
-env:
-  SSH_USERNAME: ${{ secrets.USERNAME }}
-  SSH_PASSWORD: ${{ secrets.PASSWORD }}
-
+on: push
 jobs:
   Connexion:
     runs-on: ubuntu-latest
@@ -19,12 +12,11 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           script: |
             cd $HOME/www/
-
   Copy:
     needs: Connexion
     runs-on: ubuntu-latest
     steps:
-      - name: Copie dépôt GitHub -> Alwaysdata
+      - name: Connexion SSH avec le serveur
         uses: appleboy/ssh-action@master
         with:
           host: "ssh-${{ secrets.USERNAME }}.alwaysdata.net"
@@ -34,15 +26,12 @@ jobs:
             last_directory=$(basename ${{ runner.workspace }})
             cd $HOME/
             git clone https://github.com/${{ github.repository }}.git
-
+            # Vérifier si le répertoire de destination existe
             if [ "$(ls -A ./www)" ]; then
               rsync -r --delete ./$last_directory/ ./www
               rm -rf ./$last_directory
             else
-              echo "Le répertoire www de destination sur votre serveur n'existe pas"
+              echo "Le répertoire flask de destination sur votre serveur n'existe pas"
               exit 1
             fi
 
-env:
-  SSH_USERNAME: ${{ secrets.USERNAME }}
-  SSH_PASSWORD: ${{ secrets.PASSWORD }}
